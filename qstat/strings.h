@@ -6,7 +6,7 @@
 #define TAG_WARNING "[WARN]"
 
 #define SPLASH_TEXT \
-	"electrolux's QuickStat 0.1\n"
+	"QuickStat 0.1\nJ. Farnsworth\n"
 
 #define SYNTAX_TEXT \
 	"At least one file-name is required.\n\n" \
