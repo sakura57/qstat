@@ -32,11 +32,8 @@ int main(int argc, char **argv)
 		{
 			goto file_exit;
 		}
-
-		if(analysis_parse_pe(&anal))
-		{
-			goto file_exit;
-		}
+		
+		dispatch_all(&anal);
 
 	file_exit:
 		print_errors(&anal);

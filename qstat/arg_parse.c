@@ -1,5 +1,6 @@
 #include "arg_parse.h"
 #include "dispatcher.h"
+#include <string.h>
 
 void arg_parse_init(struct arg_parse * arg_p, int argc, char ** argv)
 {

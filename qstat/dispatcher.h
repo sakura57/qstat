@@ -8,5 +8,6 @@
 
 int dispatch_analysis_func(unsigned int, struct analysis_base *);
 void dispatch_add_func(int (*)(struct analysis_base *));
+int dispatch_all(struct analysis_base *);
 
 #endif
