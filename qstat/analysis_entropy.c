@@ -4,17 +4,37 @@
 #include <string.h>
 #include <math.h>
 
-float compute_data_entropy(unsigned char *data, unsigned int len)
+static unsigned char excluded_bytes_none[] = {0};
+
+/*
+    Function to compute Shannon entropy of a byte block
+*/
+float compute_data_entropy(unsigned char *data, unsigned int len, unsigned char *exclude_list)
 {
     float entropy = 0.0;
     float bytes[256];
     unsigned int i,j;
+    register unsigned char *exclude, pulled_byte, exclude_byte = 0;
     
     memset((void*)&bytes, 0, 256 * sizeof(float));
     
     for(i=0;i<len;++i)
     {
-        bytes[data[i]] += 1.0;
+        pulled_byte = data[i];
+        exclude = exclude_list;
+        
+        while(exclude_byte = *exclude++)
+        {
+            if(exclude_byte == pulled_byte)
+            {
+                goto exclude_continue_outer;
+            }
+        }
+        
+        bytes[pulled_byte] += 1.0;
+        
+exclude_continue_outer:
+        continue;
     }
     
     for(j=0;j<256;++j)
@@ -31,6 +51,9 @@ float compute_data_entropy(unsigned char *data, unsigned int len)
     return entropy;
 }
 
+/*
+    Run entropy tests on each section
+*/
 int analysis_entropy(struct analysis_base *anal)
 {
     WORD i;
@@ -73,14 +96,20 @@ critical_fail_section_size:
             
             printf("%s Section %d is \"empty,\" computed size of 0x%X\n", TAG_WARNING, i, section_size);
         }
-        
-        entropy = compute_data_entropy(anal->data + address, section_size);
-        
-        printf("%s Section %d Shannon entropy: %f\n", TAG_STATUS, i, entropy);
-        
-        if(anal->pi_section_header[i].Characteristics & IMAGE_SCN_MEM_EXECUTE && entropy > ENTROPY_THRESHOLD)
+        else
         {
-            printf("%s Executable section appears packed\n", TAG_WARNING);
+            DWORD section_is_executable = anal->pi_section_header[i].Characteristics & IMAGE_SCN_MEM_EXECUTE;
+            
+            entropy = compute_data_entropy(anal->data + address,
+                                           section_size,
+                                           excluded_bytes_none);
+            
+            printf("%s Section %d Shannon entropy: %f\n", TAG_STATUS, i, entropy);
+            
+            if(section_is_executable && entropy > ENTROPY_THRESHOLD)
+            {
+                printf("%s Executable section appears packed\n", TAG_WARNING);
+            }
         }
     }
     
