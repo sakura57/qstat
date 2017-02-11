@@ -20,16 +20,15 @@ void dispatch_add_func(int (*new_analysis_func)(struct analysis_base *))
 
 int dispatch_all(struct analysis_base *anal)
 {
+    unsigned int errors = 0;
     int i;
     
     for(i=0;i<analysis_function_count;++i)
     {
-        unsigned int errors = (*analysis_function[i])(anal);
-        if(errors)
-        {
-            return errors;
-        }
+        errors = (*analysis_function[i])(anal);
+        
+        if(errors) break;
     }
     
-    return 0;
+    return errors;
 }

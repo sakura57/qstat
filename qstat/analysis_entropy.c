@@ -39,14 +39,48 @@ int analysis_entropy(struct analysis_base *anal)
     
     for(i=0;i<anal->pi_file_header->NumberOfSections;++i)
     {
-        DWORD virtual_address = anal->pi_section_header[i].VirtualAddress;
+        DWORD address = anal->pi_section_header[i].PointerToRawData;
         DWORD section_size = anal->pi_section_header[i].SizeOfRawData;
-        float entropy = compute_data_entropy(anal->data + virtual_address, section_size);
+        float entropy;
+        
+        if(!address)
+        {
+            printf("%s Section %d has a null address, cannot compute entropy\n", TAG_ERROR, i);
+            
+            //Not a critical error
+            continue;
+        }
+        
+        //If the section header claims the size is zero, we can still
+        //compute size based on the address
+        if(!section_size)
+        {
+            if(i == (anal->pi_file_header->NumberOfSections - 1))
+            {
+                goto critical_fail_section_size;
+            }
+            
+            section_size = anal->pi_section_header[i+1].PointerToRawData - address;
+            
+            if(!section_size)
+            {
+critical_fail_section_size:
+                printf("%s Section %d is empty, cannot compute entropy\n", TAG_ERROR, i);
+                
+                //Not a critical error (as far as the big picture is concerned)
+                continue;
+            }
+            
+            printf("%s Section %d is \"empty,\" computed size of 0x%X\n", TAG_WARNING, i, section_size);
+        }
+        
+        entropy = compute_data_entropy(anal->data + address, section_size);
+        
         printf("%s Section %d Shannon entropy: %f\n", TAG_STATUS, i, entropy);
         
         if(anal->pi_section_header[i].Characteristics & IMAGE_SCN_MEM_EXECUTE && entropy > ENTROPY_THRESHOLD)
         {
-            printf("%s  Executable section appears packed\n", TAG_WARNING);
+            printf("%s Executable section appears packed\n", TAG_WARNING);
         }
     }
     

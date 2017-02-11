@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _WIN_SHORT_H
+#define _WIN_SHORT_H
 
 #include <stdint.h>
 
@@ -286,3 +287,5 @@ typedef PIMAGE_NT_HEADERS32                 PIMAGE_NT_HEADERS;
 
 #define IMAGE_NT_OPTIONAL_HDR32_MAGIC      0x10b
 #define IMAGE_NT_OPTIONAL_HDR64_MAGIC      0x20b
+
+#endif
