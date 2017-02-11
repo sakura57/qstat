@@ -34,12 +34,21 @@ float compute_data_entropy(unsigned char *data, unsigned int len)
 int analysis_entropy(struct analysis_base *anal)
 {
     WORD i;
+    
+    printf("%s Starting entropy tests\n", TAG_STATUS);
+    
     for(i=0;i<anal->pi_file_header->NumberOfSections;++i)
     {
         DWORD virtual_address = anal->pi_section_header[i].VirtualAddress;
         DWORD section_size = anal->pi_section_header[i].SizeOfRawData;
         float entropy = compute_data_entropy(anal->data + virtual_address, section_size);
         printf("%s Section %d Shannon entropy: %f\n", TAG_STATUS, i, entropy);
+        
+        if(anal->pi_section_header[i].Characteristics & IMAGE_SCN_MEM_EXECUTE && entropy > ENTROPY_THRESHOLD)
+        {
+            printf("%s  Executable section appears packed\n", TAG_WARNING);
+        }
     }
+    
 	return 0;
 }
