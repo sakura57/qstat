@@ -2,6 +2,12 @@
 #include "dispatcher.h"
 #include <string.h>
 
+static int(*linked_function[MAX_ANALYZEFUNCS])(struct analysis_base *) =
+{
+	&analysis_entropy,
+	&analysis_imports
+};
+
 void arg_parse_init(struct arg_parse * arg_p, int argc, char ** argv)
 {
 	int i;
@@ -15,26 +21,35 @@ void arg_parse_init(struct arg_parse * arg_p, int argc, char ** argv)
 	for(i=1;i<argc;++i)
 	{
 		char * current_arg = argv[i];
-		int arg_len = strlen(current_arg);
+		size_t arg_len = strlen(current_arg);
 		if(arg_len > 2 && current_arg[0] == '-' && current_arg[1] == '-')
 		{
-			register int flag;
+			register unsigned int flag;
+			register unsigned int non_invoker_flag = 0;
+
 			switch(tolower(current_arg[2]))
 			{
 				case 'e':
-					flag = OPT_ENTROPY;
+					flag = ID_ENTROPY;
+					break;
+				case 'i':
+					flag = ID_IMPORTS;
+					break;
+				case 'v':
+					flag = ID_VERBOSE;
+					non_invoker_flag = 1;
 					break;
 				default:
 					arg_p->error_encountered = 1;
 					return;
 			}
 
-			if((arg_p->opts & flag) == 0)
+			if(!non_invoker_flag && (arg_p->opts & (1 << flag)) == 0)
 			{
-				dispatch_add_func(&analysis_entropy);
+				dispatch_add_func(linked_function[flag]);
 			}
 
-			arg_p->opts |= flag;
+			arg_p->opts |= 1 << flag;
 		}
 		else
 		{

@@ -32,6 +32,8 @@ int main(int argc, char **argv)
 		{
 			goto file_exit;
 		}
+
+		anal.verbose = arg_p.opts & OPT_VERBOSE;
 		
 		dispatch_all(&anal);
 

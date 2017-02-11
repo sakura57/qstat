@@ -18,12 +18,15 @@
 
 #define ERROR_COUNT 8
 
+#define NUM_PACKER_SECTION_STRINGS 2
+
 struct analysis_base
 {
 	unsigned char * data;
 	char * filename;
 	long size;
 	unsigned long errors;
+	unsigned int verbose;
 
 	WORD pi_sections;
 	PIMAGE_DOS_HEADER pi_dos_header;
@@ -37,6 +40,8 @@ int analysis_init(struct analysis_base *, char *);
 int analysis_parse_pe(struct analysis_base *);
 void analysis_free(struct analysis_base *);
 void print_errors(struct analysis_base *);
+
+DWORD rva_to_raw(struct analysis_base *, DWORD);
 
 
 #endif

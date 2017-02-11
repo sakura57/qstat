@@ -21,7 +21,7 @@ void dispatch_add_func(int (*new_analysis_func)(struct analysis_base *))
 int dispatch_all(struct analysis_base *anal)
 {
     unsigned int errors = 0;
-    int i;
+    unsigned int i;
     
     for(i=0;i<analysis_function_count;++i)
     {

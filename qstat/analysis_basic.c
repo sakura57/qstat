@@ -1,6 +1,36 @@
 #include "analysis_basic.h"
+#include <string.h>
 
 static char const error_msgs[ERROR_COUNT][ERROR_TEXT_MAX_LEN] = ERRORS_TEXT;
+static char const packer_section_strings[NUM_PACKER_SECTION_STRINGS][8] =
+{
+	"UPX",
+	"vmp"
+};
+
+static char const packer_names[NUM_PACKER_SECTION_STRINGS][16] =
+{
+	"UPX",
+	"VMProtect"
+};
+
+DWORD rva_to_raw(struct analysis_base *anal, DWORD rva)
+{
+	unsigned int i, sections=anal->pi_sections;
+
+	for(i=0; i<sections; ++i)
+	{
+		PIMAGE_SECTION_HEADER section = &anal->pi_section_header[i];
+		DWORD virtual_address = section->VirtualAddress;
+
+		if(rva >= virtual_address && rva < (virtual_address + section->SizeOfRawData))
+		{
+			return rva - virtual_address + section->PointerToRawData;
+		}
+	}
+
+	return 0;
+}
 
 /*
 	Load an executable into memory given a filename.
@@ -59,7 +89,7 @@ int analysis_init(struct analysis_base *anal, char *filename)
 int analysis_parse_pe(struct analysis_base *anal)
 {
 	WORD sections;
-	unsigned int i;
+	unsigned int i,j;
 
 	anal->pi_dos_header = (PIMAGE_DOS_HEADER)anal->data;
 
@@ -101,10 +131,29 @@ int analysis_parse_pe(struct analysis_base *anal)
 
 	anal->pi_section_header = (PIMAGE_SECTION_HEADER)(anal->data + anal->pi_dos_header->e_lfanew + sizeof(IMAGE_NT_HEADERS));
 
+	unsigned int packer_identified = 0;
+
 	for(i=0;i<sections;++i)
 	{
 		PIMAGE_SECTION_HEADER section = &anal->pi_section_header[i];
 		printf("%s Section %d, name \'%s\'\n", TAG_STATUS, i, section->Name);
+
+		if(!packer_identified)
+		{
+			for(j=0;j<NUM_PACKER_SECTION_STRINGS;++j)
+			{
+				if(strstr(section->Name, packer_section_strings[j]))
+				{
+					packer_identified = j + 1;
+					break;
+				}
+			}
+		}
+	}
+
+	if(packer_identified)
+	{
+		printf("%s Section naming indicates %s packing\n", TAG_WARNING, packer_names[packer_identified-1]);
 	}
 
 	return 0;

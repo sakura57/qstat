@@ -7,7 +7,12 @@
 #define EXPECTED_FILES 4
 #define REALLOCATE_INCREMENT 2
 
+#define ID_ENTROPY 0
+#define ID_IMPORTS 1
+#define ID_VERBOSE 2
 #define OPT_ENTROPY 1 << 0
+#define OPT_IMPORTS 1 << 1
+#define OPT_VERBOSE 1 << 2
 
 struct arg_parse
 {

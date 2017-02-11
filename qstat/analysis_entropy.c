@@ -43,7 +43,7 @@ exclude_continue_outer:
         if(byte != 0.0f)
         {
             float occurrence = byte / ((float)len);
-            entropy += (-log(occurrence) / log(2.0f)) * byte;
+            entropy += (float)((-log(occurrence) / log(2.0f)) * byte);
         }
     }
     

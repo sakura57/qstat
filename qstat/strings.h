@@ -11,7 +11,9 @@
 #define SYNTAX_TEXT \
 	"At least one file-name is required.\n\n" \
 	"Options:\n" \
+	"--v\tVerbose mode\n" \
 	"--e\tDetermine section entropy.\n" \
+	"--i\tImports analysis.\n" \
 	"\n"
 
 #define ERROR_TEXT_MAX_LEN 32
