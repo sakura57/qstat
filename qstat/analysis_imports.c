@@ -4,6 +4,8 @@
 #define FLAGGED_MODULE_MAX_NAME_LEN 32
 #define FLAGGED_MODULE_COUNT 3
 
+#define INITIAL_IMPORT_COUNT 64
+
 static char const flagged_modules[][FLAGGED_MODULE_MAX_NAME_LEN] =
 {
 	"ws2_32.dll",
@@ -15,6 +17,9 @@ static char const flagged_modules[][FLAGGED_MODULE_MAX_NAME_LEN] =
 int analysis_imports(struct analysis_base *anal)
 {
 	DWORD imports_addr, imports_size;
+
+	char **imports = (char**)malloc(INITIAL_IMPORT_COUNT*sizeof(char*));
+	DWORD *import_location_table = (DWORD*)malloc(INITIAL_IMPORT_COUNT*sizeof(DWORD));
 
 	printf("%s Starting imports analysis\n", TAG_STATUS);
 
@@ -33,7 +38,7 @@ int analysis_imports(struct analysis_base *anal)
 		printf("%s Unable to locate import descriptor table\n", TAG_ERROR);
 
 		//Not a critical error
-		return 0;
+		goto imports_analysis_end;
 	}
 
 	printf("%s Located import descriptor table, address 0x%X, size=0x%X\n", TAG_STATUS, imports_addr, imports_size);
@@ -47,7 +52,7 @@ int analysis_imports(struct analysis_base *anal)
 			printf("%s No imported modules! Image is packed?\n", TAG_ERROR);
 
 			//Not a critical error
-			return 0;
+			goto imports_analysis_end;
 		}
 
 		do
@@ -74,8 +79,22 @@ int analysis_imports(struct analysis_base *anal)
 				}
 			}
 
+			//walk the imported symbols for each module
+			{
+				PIMAGE_THUNK_DATA thunk_ptr = (PIMAGE_THUNK_DATA)(anal->data + rva_to_raw(anal, import_desc->FirstThunk));
+				DWORD string;
+
+				while(string = (thunk_ptr++)->u1.ForwarderString)
+				{
+					//todo: actually something here
+				}
+			}
+
 		} while((++import_desc)->FirstThunk);
 	}
 
+imports_analysis_end:
+	free(imports);
+	free(import_location_table);
 	return 0;
 }

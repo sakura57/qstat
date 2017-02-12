@@ -303,6 +303,93 @@ typedef struct _IMAGE_IMPORT_DESCRIPTOR {
 	DWORD   FirstThunk;                     // RVA to IAT (if bound this IAT has actual addresses)
 } IMAGE_IMPORT_DESCRIPTOR;
 
+typedef struct _IMAGE_IMPORT_BY_NAME {
+	WORD    Hint;
+	char   Name[1];
+} IMAGE_IMPORT_BY_NAME, *PIMAGE_IMPORT_BY_NAME;
+
+typedef struct _IMAGE_THUNK_DATA64 {
+	union {
+		ULONGLONG ForwarderString;  // PBYTE 
+		ULONGLONG Function;         // PDWORD
+		ULONGLONG Ordinal;
+		ULONGLONG AddressOfData;    // PIMAGE_IMPORT_BY_NAME
+	} u1;
+} IMAGE_THUNK_DATA64;
+typedef IMAGE_THUNK_DATA64 * PIMAGE_THUNK_DATA64;
+
+typedef struct _IMAGE_THUNK_DATA32 {
+	union {
+		DWORD ForwarderString;      // PBYTE 
+		DWORD Function;             // PDWORD
+		DWORD Ordinal;
+		DWORD AddressOfData;        // PIMAGE_IMPORT_BY_NAME
+	} u1;
+} IMAGE_THUNK_DATA32;
+typedef IMAGE_THUNK_DATA32 * PIMAGE_THUNK_DATA32;
+
+#define IMAGE_ORDINAL_FLAG64 0x8000000000000000
+#define IMAGE_ORDINAL_FLAG32 0x80000000
+#define IMAGE_ORDINAL64(Ordinal) (Ordinal & 0xffff)
+#define IMAGE_ORDINAL32(Ordinal) (Ordinal & 0xffff)
+#define IMAGE_SNAP_BY_ORDINAL64(Ordinal) ((Ordinal & IMAGE_ORDINAL_FLAG64) != 0)
+#define IMAGE_SNAP_BY_ORDINAL32(Ordinal) ((Ordinal & IMAGE_ORDINAL_FLAG32) != 0)
+
 typedef IMAGE_IMPORT_DESCRIPTOR *PIMAGE_IMPORT_DESCRIPTOR;
+
+typedef struct _IMAGE_TLS_DIRECTORY64 {
+	ULONGLONG StartAddressOfRawData;
+	ULONGLONG EndAddressOfRawData;
+	ULONGLONG AddressOfIndex;         // PDWORD
+	ULONGLONG AddressOfCallBacks;     // PIMAGE_TLS_CALLBACK *;
+	DWORD SizeOfZeroFill;
+	union {
+		DWORD Characteristics;
+		struct {
+			DWORD Reserved0 : 20;
+			DWORD Alignment : 4;
+			DWORD Reserved1 : 8;
+		} DUMMYSTRUCTNAME;
+	} DUMMYUNIONNAME;
+
+} IMAGE_TLS_DIRECTORY64;
+
+typedef IMAGE_TLS_DIRECTORY64 * PIMAGE_TLS_DIRECTORY64;
+
+typedef struct _IMAGE_TLS_DIRECTORY32 {
+	DWORD   StartAddressOfRawData;
+	DWORD   EndAddressOfRawData;
+	DWORD   AddressOfIndex;             // PDWORD
+	DWORD   AddressOfCallBacks;         // PIMAGE_TLS_CALLBACK *
+	DWORD   SizeOfZeroFill;
+	union {
+		DWORD Characteristics;
+		struct {
+			DWORD Reserved0 : 20;
+			DWORD Alignment : 4;
+			DWORD Reserved1 : 8;
+		} DUMMYSTRUCTNAME;
+	} DUMMYUNIONNAME;
+
+} IMAGE_TLS_DIRECTORY32;
+typedef IMAGE_TLS_DIRECTORY32 * PIMAGE_TLS_DIRECTORY32;
+
+#ifdef _WIN64
+#define IMAGE_ORDINAL_FLAG              IMAGE_ORDINAL_FLAG64
+#define IMAGE_ORDINAL(Ordinal)          IMAGE_ORDINAL64(Ordinal)
+typedef IMAGE_THUNK_DATA64              IMAGE_THUNK_DATA;
+typedef PIMAGE_THUNK_DATA64             PIMAGE_THUNK_DATA;
+#define IMAGE_SNAP_BY_ORDINAL(Ordinal)  IMAGE_SNAP_BY_ORDINAL64(Ordinal)
+typedef IMAGE_TLS_DIRECTORY64           IMAGE_TLS_DIRECTORY;
+typedef PIMAGE_TLS_DIRECTORY64          PIMAGE_TLS_DIRECTORY;
+#else
+#define IMAGE_ORDINAL_FLAG              IMAGE_ORDINAL_FLAG32
+#define IMAGE_ORDINAL(Ordinal)          IMAGE_ORDINAL32(Ordinal)
+typedef IMAGE_THUNK_DATA32              IMAGE_THUNK_DATA;
+typedef PIMAGE_THUNK_DATA32             PIMAGE_THUNK_DATA;
+#define IMAGE_SNAP_BY_ORDINAL(Ordinal)  IMAGE_SNAP_BY_ORDINAL32(Ordinal)
+typedef IMAGE_TLS_DIRECTORY32           IMAGE_TLS_DIRECTORY;
+typedef PIMAGE_TLS_DIRECTORY32          PIMAGE_TLS_DIRECTORY;
+#endif
 
 #endif
